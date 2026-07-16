@@ -15,7 +15,6 @@ namespace CorgiPlay.PuzzleGame.App
 {
     public static class AddressablesWrapper
     {
-        private static readonly object baseUrlSyncRoot = new object();
         private static string cachedBaseUrlRegionCode;
         private static string cachedBaseUrl;
 
@@ -31,13 +30,10 @@ namespace CorgiPlay.PuzzleGame.App
         {
             string regionCode = AddressablesRemotePathRouter.GetCurrentRegionCode();
 
-            lock (baseUrlSyncRoot)
+            if (cachedBaseUrlRegionCode == regionCode &&
+                !string.IsNullOrWhiteSpace(cachedBaseUrl))
             {
-                if (cachedBaseUrlRegionCode == regionCode &&
-                    !string.IsNullOrWhiteSpace(cachedBaseUrl))
-                {
-                    return cachedBaseUrl;
-                }
+                return cachedBaseUrl;
             }
 
             string primaryUrl = AddressablesRemotePathRouter.IsEuropeRegionCode(regionCode)
@@ -46,11 +42,8 @@ namespace CorgiPlay.PuzzleGame.App
 
             string normalizedBaseUrl = AddressablesRemotePathUtility.NormalizeUrl(primaryUrl);
 
-            lock (baseUrlSyncRoot)
-            {
-                cachedBaseUrlRegionCode = regionCode;
-                cachedBaseUrl = normalizedBaseUrl;
-            }
+            cachedBaseUrlRegionCode = regionCode;
+            cachedBaseUrl = normalizedBaseUrl;
 
             return normalizedBaseUrl;
         }
@@ -62,7 +55,6 @@ namespace CorgiPlay.PuzzleGame.App
         private const string BelarusRegionCode = "BY";
         private const int IpGeolocationTimeoutSeconds = 4;
 
-        private static readonly object regionSyncRoot = new object();
         private static string runtimeRegionCode;
         private static string runtimeRegionSource;
         private static string runtimeRegionProvider;
@@ -93,12 +85,9 @@ namespace CorgiPlay.PuzzleGame.App
 
         public static string GetCurrentRegionCode()
         {
-            lock (regionSyncRoot)
+            if (!string.IsNullOrWhiteSpace(runtimeRegionCode))
             {
-                if (!string.IsNullOrWhiteSpace(runtimeRegionCode))
-                {
-                    return runtimeRegionCode;
-                }
+                return runtimeRegionCode;
             }
 
             string cultureRegionCode = GetCultureRegionCodeOrUnknown();
@@ -306,32 +295,23 @@ namespace CorgiPlay.PuzzleGame.App
             string source,
             string provider)
         {
-            lock (regionSyncRoot)
-            {
-                runtimeRegionProvider = provider ?? string.Empty;
-                runtimeRegionSource = source ?? "unknown";
-                runtimeRegionCode = regionCode;
-            }
+            runtimeRegionProvider = provider ?? string.Empty;
+            runtimeRegionSource = source ?? "unknown";
+            runtimeRegionCode = regionCode;
         }
 
         private static string GetRuntimeRegionSource()
         {
-            lock (regionSyncRoot)
-            {
-                return string.IsNullOrWhiteSpace(runtimeRegionSource)
-                    ? "unknown"
-                    : runtimeRegionSource;
-            }
+            return string.IsNullOrWhiteSpace(runtimeRegionSource)
+                ? "unknown"
+                : runtimeRegionSource;
         }
 
         private static string GetRuntimeRegionProvider()
         {
-            lock (regionSyncRoot)
-            {
-                return string.IsNullOrWhiteSpace(runtimeRegionProvider)
-                    ? string.Empty
-                    : runtimeRegionProvider;
-            }
+            return string.IsNullOrWhiteSpace(runtimeRegionProvider)
+                ? string.Empty
+                : runtimeRegionProvider;
         }
 
         private static string NormalizeRegionCode(string regionCode)
@@ -394,7 +374,6 @@ namespace CorgiPlay.PuzzleGame.App
         [Serializable]
         private sealed class CountryIsResponse
         {
-            // JsonUtility deserializes public fields, not properties.
             public string country;
         }
 
