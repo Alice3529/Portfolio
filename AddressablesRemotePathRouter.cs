@@ -7,6 +7,10 @@ using UnityEngine;
 using UnityEngine.Networking;
 using CorgiPlay.Unity.Core.Diagnostics;
 
+/// <summary>
+/// Provides the appropriate Addressables base URL for loading remote content based on the user's region.
+/// </summary>
+
 namespace CorgiPlay.PuzzleGame.App
 {
     public static class AddressablesWrapper
